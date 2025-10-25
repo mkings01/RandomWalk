@@ -1,0 +1,4 @@
+# Requirements.txt for Plot measure sensors example
+
+matplotlib==3.10.7
+tqdm==4.64.1
