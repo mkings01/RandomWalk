@@ -28,7 +28,7 @@ class CurrentWorldState:
         self.max_y = max_y
         self.range_y = self.max_y * 2 + 1
         self.walker_total = 0
-        self.walker_counts = [[0 for x in range(0,self.range_x)] for y in range(0,self.range_y)]
+        self.walker_counts = [[0 for x in range(self.range_x)] for y in range(self.range_y)]
     def add_walker(self,walker):
         adjusted_x = walker.x + max_x
         adjusted_y = walker.y + max_y
@@ -88,25 +88,19 @@ class RandomWalker:
             # This shouldn't happen
             raise("attempted a third movement option")
 
-def run_random_walk(num_iterations, num_walkers, max_x, max_y):
-    
-    # create array of walkers
-    random_walkers = [RandomWalker() for i in range(0,num_walkers)]
-    
-    # run iterations
-    for iteration in tqdm(range(0,num_iterations),
-                            '├Scenario iteration progress',
-                            position=1):
-        for random_walker in random_walkers:
+class RandomWalkSimulation:
+    def __init__(self, num_walkers, max_x, max_y):
+        self.random_walkers = [RandomWalker() for i in range(num_walkers)]
+        self.max_x = max_x
+        self.max_y = max_y
+        self.final_world_state = CurrentWorldState(max_x=self.max_x,max_y=self.max_y)
+    def iterate_simulation(self):
+        for random_walker in self.random_walkers:
             random_walker.walk_once(max_x=max_x, max_y=max_y)
-    
-    final_world_state = CurrentWorldState(max_x=max_x,max_y=max_y)
-    final_world_state.add_walkers(random_walkers)
-    final_world_state.plot()
-    
-    # for random_walker in random_walkers:
-    #     print("final position: x=" + str(random_walker.x) + " y=" + str(random_walker.y))
-    
+    def run_simulation(self, steps):
+        for i in range(steps):
+            self.iterate_simulation()
+
 if __name__ == "__main__":
     # TODO: add argument handling
     num_iterations = 200
@@ -115,9 +109,12 @@ if __name__ == "__main__":
     for num_walkers in tqdm(num_walkers_array,
                             '├Scenarios progress',
                             position=0):
-        run_random_walk(num_iterations=num_iterations,
-                        num_walkers=num_walkers,
-                        max_x=max_x,
-                        max_y=max_y)
+        current_simulation = RandomWalkSimulation(num_walkers=num_walkers,
+                                                  max_x=max_x,
+                                                  max_y=max_y)
+        current_simulation.run_simulation(num_iterations)
+        current_simulation.final_world_state.add_walkers(current_simulation.random_walkers)
+        current_simulation.final_world_state.plot()
+
         
     plt.show()
