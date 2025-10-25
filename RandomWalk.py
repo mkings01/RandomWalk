@@ -37,16 +37,15 @@ class CurrentWorldState:
     def add_walkers(self,walkers):
         for walker in walkers:
             self.add_walker(walker)
-    def plot(self):
-        current_fig, current_plot_ax1 = plt.subplots()
+    def plot(self, current_plot_ax1):
         extent = [-self.max_x, self.max_x, -self.max_y, self.max_y]
         colormesh = current_plot_ax1.imshow(self.walker_counts,
                                             extent=extent)
-        current_plot_ax1.set_title("Final random walker distribution, total count=" + str(self.walker_total))
+        current_plot_ax1.set_title("Walker count=" + str(self.walker_total))
         current_plot_ax1.xaxis.set_major_locator(MaxNLocator(integer=True))
         current_plot_ax1.yaxis.set_major_locator(MaxNLocator(integer=True))
         colorbar = plt.colorbar(mappable=colormesh, 
-                                orientation='vertical', 
+                                orientation='horizontal', 
                                 label='counts',
                                 format=lambda x, 
                                         _: f'{x:.0f}')
@@ -98,14 +97,20 @@ class RandomWalkSimulation:
         for random_walker in self.random_walkers:
             random_walker.walk_once(max_x=max_x, max_y=max_y)
     def run_simulation(self, steps):
-        for i in range(steps):
+        for i in tqdm(range(steps),
+                      '├Scenario progress',
+                      position=1):
             self.iterate_simulation()
 
 if __name__ == "__main__":
     # TODO: add argument handling
     num_iterations = 200
     num_walkers_array = [10, 100, 1000, 10000, 100000]
-    max_x = max_y = 100
+    num_simulations = len(num_walkers_array)
+    current_subplot_x = 0
+    max_x = max_y = 30
+    fig, axes = plt.subplots(1, num_simulations)
+
     for num_walkers in tqdm(num_walkers_array,
                             '├Scenarios progress',
                             position=0):
@@ -114,7 +119,8 @@ if __name__ == "__main__":
                                                   max_y=max_y)
         current_simulation.run_simulation(num_iterations)
         current_simulation.final_world_state.add_walkers(current_simulation.random_walkers)
-        current_simulation.final_world_state.plot()
-
         
+        current_simulation.final_world_state.plot(current_plot_ax1=axes[current_subplot_x])
+        current_subplot_x += 1
+
     plt.show()
